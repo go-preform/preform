@@ -306,20 +306,21 @@ func BenchmarkSqlxStructScan(b *testing.B) {
 }
 
 func BenchmarkSqlRawScan(b *testing.B) {
-	var (
-		testAs []preformModel.TestABody
-		testA  preformModel.TestABody
-		rows   *sql.Rows
-		err    error
-	)
+
 	for i := 0; i < b.N; i++ {
-		testAs = nil
+		var (
+			testAs = make([]preformModel.TestABody, 0, 1000)
+			testA  preformModel.TestABody
+			rows   *sql.Rows
+			err    error
+			ptrs   = []any{&testA.Id, &testA.Name, &testA.Int4, &testA.Int8, &testA.Float4, &testA.Float8, &testA.Bool, &testA.Text, &testA.Time}
+		)
 		rows, err = sqlxConn.Query("SELECT id, \"name\", \"int4\", \"int8\", \"float4\", \"float8\", \"bool\", \"text\", \"time\" FROM preform_benchmark.test_a limit 1000;")
 		if err != nil {
 			b.Error(err)
 		}
 		for rows.Next() {
-			err = rows.Scan(&testA.Id, &testA.Name, &testA.Int4, &testA.Int8, &testA.Float4, &testA.Float8, &testA.Bool, &testA.Text, &testA.Time)
+			err = rows.Scan(ptrs...)
 			if err != nil {
 				b.Error(err)
 			}
