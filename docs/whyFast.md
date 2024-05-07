@@ -32,7 +32,7 @@ Is it possible to achieve the performance benefits of hard-coding while retainin
 
 When looking at the flame graph we can observe which part cost the most.
 
-![](../asset/fg1.png)
+![](../.github/asset/fg1.png)
 
 
 Before we go deeper, the growslice() stood out. Yes because whenever we append an element into the result slice, it may trigger growslice() and that’s expensive! How could we avoid that?
@@ -79,7 +79,7 @@ It requires a relatively deep understanding of how struct and slice append work.
 2. Append struct into slice will clone a new identical struct into the tail
 3. Reuse the pointers and struct from 1 & 2 and repeat until EOF
 
-![](../asset/fg2.png)
+![](../.github/asset/fg2.png)
 
 The graph aligned! The scanning loop is almost perfect now.
 
@@ -201,7 +201,7 @@ That's significant!
 
 At last, [PREFORM](https://github.com/go-preform/preform) fixed the dilemma of performance and abstraction. The model builder reads the schema and generates data models, providing a performance boost from the above hacks. And it also generates factories, which can be helpful in building queries and manipulate models.
 
-![preform](../asset/preformFlow.png)
+![preform](../.github/asset/preformFlow.png)
 
 ```go
 users, err := mainSchema.User.Select(mainSchema.User.Id, mainSchema.User.Username). // select columns with predefined column fields
@@ -215,7 +215,7 @@ cards, err := users[0].LoadCards()
 
 Please share your thoughts and feedback on this article. I would love to hear your opinions and suggestions.
 
-![preform](../asset/benchChart.png)
+![preform](../.github/asset/benchChart.png)
 
 ```bash
 # with local docker postgres, 1000 rows
