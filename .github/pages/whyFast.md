@@ -1,3 +1,5 @@
+# How I made an ORM faster than raw SQL scan?
+
 ## Introduction:
 
 When considering data storage solutions, SQL remains a preferred option for most backend developers. Approximately 80% of Golang services rely on SQL to varying degrees. Developers constantly seek to optimize performance, often resorting to hard-coding queries and data scanning loops for efficiency.
@@ -30,7 +32,7 @@ Is it possible to achieve the performance benefits of hard-coding while retainin
 
 When looking at the flame graph we can observe which part cost the most.
 
-![](./asset/fg1.png)
+![](../asset/fg1.png)
 
 
 Before we go deeper, the growslice() stood out. Yes because whenever we append an element into the result slice, it may trigger growslice() and that’s expensive! How could we avoid that?
@@ -77,7 +79,7 @@ It requires a relatively deep understanding of how struct and slice append work.
 2. Append struct into slice will clone a new identical struct into the tail
 3. Reuse the pointers and struct from 1 & 2 and repeat until EOF
 
-![](./asset/fg2.png)
+![](../asset/fg2.png)
 
 The graph aligned! The scanning loop is almost perfect now.
 
@@ -110,7 +112,7 @@ BenchmarkSelectFast-20            110514             11063 ns/op            9288
 
 Almost 200% faster!
 
-Another big cost I found later is the argument of [placeholder replacing function](https://github.com/Masterminds/squirrel/blob/master/placeholder.go#L88). It uses buff and strings.Index() which should be highly efficient. But in such a scenario, we have a better and simpler choice: strings.Split(). The only difficulty is to escape the “??” to “?”.
+Another big cost I found later is the argument [placeholder replacing function](https://github.com/Masterminds/squirrel/blob/master/placeholder.go#L88). It uses buff and strings.Index() which should be highly efficient. But in such a scenario, we have a better and simpler choice: strings.Split(). The only difficulty is to escape the “??” to “?”.
 
 ```go
 func replacePositionalPlaceholdersFast(sql, prefix string) (string, error) {
@@ -199,7 +201,7 @@ That's significant!
 
 At last, [PREFORM](https://github.com/go-preform/preform) fixed the dilemma of performance and abstraction. The model builder reads the schema and generates data models, providing a performance boost from the above hacks. And it also generates factories, which can be helpful in building queries and manipulate models.
 
-![preform](./asset/preformFlow.png)
+![preform](../asset/preformFlow.png)
 
 ```go
 users, err := mainSchema.User.Select(mainSchema.User.Id, mainSchema.User.Username). // select columns with predefined column fields
@@ -211,9 +213,9 @@ users, err := mainSchema.User.Select(mainSchema.User.Id, mainSchema.User.Usernam
 cards, err := users[0].LoadCards()
 ```
 
-I hope it can become mature soon, or at least inspire people to build faster and stronger libraries.
+Please share your thoughts and feedback on this article. I would love to hear your opinions and suggestions.
 
-![preform](./asset/benchChart.png)
+![preform](../asset/benchChart.png)
 
 ```bash
 # with local docker postgres, 1000 rows
@@ -234,3 +236,9 @@ BenchmarkSqlRawScan-20                       446           2742864 ns/op        
 ```
 
 Thank you for reading.
+
+## Credits
+
+- [Masterminds/squirrel](http://github.com/Masterminds/squirrel)
+- [vali637](https://github.com/vali637)
+- [Eleron8](https://github.com/Eleron8)
