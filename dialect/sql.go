@@ -146,3 +146,7 @@ func (d basicSqlDialect) LtOrEq(col preformShare.ICol, v any) squirrel.Sqlizer {
 func (d basicSqlDialect) Between(col preformShare.ICol, v1, v2 any) squirrel.Sqlizer {
 	return preformSqlizer.Between{col.GetCode(): [2]any{v1, v2}}
 }
+
+func (d basicSqlDialect) CaseStmtToSql(builder squirrel.CaseBuilder, col preformShare.ICol) (string, []any, error) {
+	return builder.ToSql()
+}

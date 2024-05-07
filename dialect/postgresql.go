@@ -7,8 +7,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	preformShare "github.com/go-preform/preform/share"
+	preformTypes "github.com/go-preform/preform/types"
 	"github.com/go-preform/squirrel"
 	"github.com/iancoleman/strcase"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -583,4 +585,81 @@ func (d postgresqlDialect) ParseCustomTypeValue(typeName string, values ...any) 
 		strs[i] = fmt.Sprintf(`"%s"`, strings.Replace(strs[i], `"`, `""`, -1))
 	}
 	return fmt.Sprintf(`(%s)`, strings.Join(strs, ",")), nil
+}
+
+type isJson interface {
+	typeExported
+	MarshalJSON() ([]byte, error)
+	Src() []byte
+	String() string
+}
+
+type typeExported interface {
+	TypeForExport() any
+}
+
+func (d postgresqlDialect) CaseStmtToSql(builder squirrel.CaseBuilder, col preformShare.ICol) (string, []any, error) {
+	s, a, e := builder.ToSql()
+	if e != nil {
+		return s, a, e
+	}
+	var (
+		v         = col.NewValue()
+		wrapTypes func(v any)
+	)
+	wrapTypes = func(v any) {
+		switch v.(type) {
+		case time.Time:
+			s = fmt.Sprintf("(%s)::timestamp", s)
+			for i := range a {
+				switch a[i].(type) {
+				case time.Time:
+					a[i] = a[i].(time.Time).Format(time.RFC3339)
+				}
+			}
+		case int32, int64, int, uint32, uint64, uint, float32, float64, preformTypes.Rat:
+			s = fmt.Sprintf("(%s)::numeric", s)
+			for i := range a {
+				a[i] = fmt.Sprintf("%v", a[i])
+			}
+		case isJson:
+			s = fmt.Sprintf("(%s)::json", s)
+		default:
+			vt := reflect.TypeOf(v)
+			switch vt.Kind() {
+			case reflect.Slice, reflect.Array:
+				switch vt.Elem().Kind() {
+				case reflect.Int32, reflect.Int64, reflect.Int, reflect.Uint32, reflect.Uint64, reflect.Uint, reflect.Float32, reflect.Float64:
+					s = fmt.Sprintf("(%s)::_numeric", s)
+
+				case reflect.String:
+					s = fmt.Sprintf("(%s)::_text", s)
+				case reflect.Struct:
+					if vt.Elem().String() == "time.Time" {
+						s = fmt.Sprintf("(%s)::_timestamp", s)
+					} else if vt.Elem().String() == "preformTypes.Rat" {
+						s = fmt.Sprintf("(%s)::_numeric", s)
+					}
+				}
+				for i := range a {
+					if vv, ok := a[i].(driver.Valuer); ok {
+						if vvv, e := vv.Value(); e == nil {
+							a[i] = fmt.Sprintf("%v", vvv)
+						}
+					} else {
+						a[i] = fmt.Sprintf("%v", a[i])
+					}
+				}
+			default:
+				if e, ok := v.(typeExported); ok {
+					wrapTypes(e.TypeForExport())
+				}
+			}
+		}
+	}
+	wrapTypes(v)
+
+	fmt.Println(col.DbName(), s, a)
+
+	return s, a, e
 }

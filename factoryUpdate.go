@@ -2,6 +2,7 @@ package preform
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	preformShare "github.com/go-preform/preform/share"
 	"github.com/go-preform/squirrel"
@@ -96,20 +97,20 @@ type UpdateBuilder[B any] struct {
 	ctx      context.Context
 }
 
-func (f *Factory[FPtr, B]) Update() *UpdateBuilder[B] {
+func (f *Factory[FPtr, B]) Update() UpdateBuilder[B] {
 	b := f.Db().sqStmtBuilder.UpdateFast(strings.Split(f.fromClause(), " AS ")[0])
 	if f.fixCond != nil {
 		b = b.Where(f.fixCond)
 	}
-	return &UpdateBuilder[B]{Builder: b, factory: f.Definition, execer: f.Db()}
+	return UpdateBuilder[B]{Builder: b, factory: f.Definition, execer: f.Db()}
 }
 
-func (b *UpdateBuilder[B]) Ctx(ctx context.Context) *UpdateBuilder[B] {
+func (b UpdateBuilder[B]) Ctx(ctx context.Context) UpdateBuilder[B] {
 	b.ctx = ctx
 	return b
 }
 
-func (b *UpdateBuilder[B]) Where(cond ICond) *UpdateBuilder[B] {
+func (b UpdateBuilder[B]) Where(cond ICond) UpdateBuilder[B] {
 	b.Builder = b.Builder.Where(noTableCodeWhere(cond))
 	b.hasWhere = true
 	return b
@@ -135,7 +136,7 @@ func noTableCodeWhere(cond ICond) ICond {
 	return cond
 }
 
-func (b *UpdateBuilder[B]) Columns(cols ...ICol) *UpdateBuilder[B] {
+func (b UpdateBuilder[B]) Columns(cols ...ICol) UpdateBuilder[B] {
 	for _, col := range cols {
 		if col.QueryFactory() == b.factory {
 			b.bodyCols = append(b.bodyCols, col)
@@ -144,12 +145,12 @@ func (b *UpdateBuilder[B]) Columns(cols ...ICol) *UpdateBuilder[B] {
 	return b
 }
 
-func (b *UpdateBuilder[B]) SetBodies(body ...*B) *UpdateBuilder[B] {
+func (b UpdateBuilder[B]) SetBodies(body ...*B) UpdateBuilder[B] {
 	b.bodies = body
 	return b
 }
 
-func (b *UpdateBuilder[B]) Set(col any, value any) *UpdateBuilder[B] {
+func (b UpdateBuilder[B]) Set(col any, value any) UpdateBuilder[B] {
 	switch col.(type) {
 	case ICol:
 		b.Builder = b.Builder.Set(b.factory.Db().GetDialect().QuoteIdentifier(col.(ICol).DbName()), value)
@@ -159,12 +160,12 @@ func (b *UpdateBuilder[B]) Set(col any, value any) *UpdateBuilder[B] {
 	return b
 }
 
-func (b *UpdateBuilder[B]) SetMap(clause map[string]any) *UpdateBuilder[B] {
+func (b UpdateBuilder[B]) SetMap(clause map[string]any) UpdateBuilder[B] {
 	b.Builder = b.Builder.SetMap(clause)
 	return b
 }
 
-func (b *UpdateBuilder[B]) LimitOffset(limit, offset uint64) *UpdateBuilder[B] {
+func (b UpdateBuilder[B]) LimitOffset(limit, offset uint64) UpdateBuilder[B] {
 	b.Builder = b.Builder.Limit(limit).Offset(offset)
 	return b
 }
@@ -182,8 +183,8 @@ func (b UpdateBuilder[B]) ToSql() (string, []any, error) {
 			pkColPos   = pk[0].GetPos()
 			pkValues   = make([]any, l)
 		)
-		if len(pk) != 1 && l > 1 {
-			return "", nil, errors.New("update by bodies must have one pk")
+		if len(pk) != 1 {
+			return "", nil, errors.New("update by bodies must have only one pk")
 		}
 		if len(cols) == 0 {
 			cols = b.factory.Columns()
@@ -196,17 +197,35 @@ func (b UpdateBuilder[B]) ToSql() (string, []any, error) {
 			}
 		} else {
 			var (
-				cases = make([]squirrel.CaseBuilder, len(cols))
+				cases   = make([]*CaseStmt, len(cols))
+				caseMap = map[string]any{}
+				ok      bool
 			)
-			for i = range cols {
-				cases[i] = squirrel.Case(db.GetDialect().QuoteIdentifier(pkColName))
+			for i, col = range cols {
+				cases[i] = col.CaseStmt(pkColName)
 			}
-			for _, body := range b.bodies {
+			for j, body := range b.bodies {
+				bodyValues = any(body).(iModelBody).FieldValuePtrs()
+				pkValues[j] = bodyValues[pkColPos]
 				for i, col = range cols {
-					bodyValues = any(body).(iModelBody).FieldValuePtrs()
-					pkValues[i] = bodyValues[pkColPos]
-					cases[i] = cases[i].When(bodyValues[pkColPos], col.unwrapPtrForUpdate(bodyValues[col.GetPos()]))
+					if _, ok = bodyValues[col.GetPos()].(driver.Valuer); ok {
+						cases[i] = cases[i].When(
+							squirrel.Expr("?", pk[pkColPos].unwrapPtr(bodyValues[pkColPos])),
+							squirrel.Expr("?", bodyValues[col.GetPos()]),
+						)
+					} else {
+						cases[i] = cases[i].When(
+							squirrel.Expr("?", pk[pkColPos].unwrapPtr(bodyValues[pkColPos])),
+							squirrel.Expr("?", col.unwrapPtr(bodyValues[col.GetPos()])),
+						)
+					}
 				}
+			}
+			for i, col = range cols {
+				caseMap[db.GetDialect().QuoteIdentifier(col.DbName())], _ = cases[i].ToExpr(db.dialect)
+			}
+			if len(caseMap) > 0 {
+				b.Builder = b.Builder.SetMap(caseMap)
 			}
 		}
 		if !b.hasWhere {

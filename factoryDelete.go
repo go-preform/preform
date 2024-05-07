@@ -74,26 +74,26 @@ type DeleteBuilder[B any] struct {
 	ctx      context.Context
 }
 
-func (f *Factory[FPtr, B]) Delete() *DeleteBuilder[B] {
+func (f *Factory[FPtr, B]) Delete() DeleteBuilder[B] {
 	b := f.Db().sqStmtBuilder.DeleteFast(strings.Split(f.fromClause(), " AS ")[0])
 	if f.fixCond != nil {
 		b = b.Where(f.fixCond)
 	}
-	return &DeleteBuilder[B]{Builder: b, factory: f.Definition, execer: f.Db()}
+	return DeleteBuilder[B]{Builder: b, factory: f.Definition, execer: f.Db()}
 }
 
-func (b *DeleteBuilder[B]) Ctx(ctx context.Context) *DeleteBuilder[B] {
+func (b DeleteBuilder[B]) Ctx(ctx context.Context) DeleteBuilder[B] {
 	b.ctx = ctx
 	return b
 }
 
-func (b *DeleteBuilder[B]) Where(cond ICond) *DeleteBuilder[B] {
+func (b DeleteBuilder[B]) Where(cond ICond) DeleteBuilder[B] {
 	b.Builder = b.Builder.Where(noTableCodeWhere(cond))
 	b.hasWhere = true
 	return b
 }
 
-func (b *DeleteBuilder[B]) LimitOffset(limit, offset uint64) *DeleteBuilder[B] {
+func (b DeleteBuilder[B]) LimitOffset(limit, offset uint64) DeleteBuilder[B] {
 	b.Builder = b.Builder.Limit(limit).Offset(offset)
 	return b
 }

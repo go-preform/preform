@@ -2,6 +2,7 @@ package preform
 
 import (
 	preformShare "github.com/go-preform/preform/share"
+	"github.com/go-preform/squirrel"
 	"reflect"
 )
 
@@ -159,4 +160,8 @@ func (c ColumnWrap[C]) ArrayAgg() iAggregateCol {
 
 func (c ColumnWrap[T]) Aggregate(fn preformShare.Aggregator, params ...any) iAggregateCol {
 	return &AggregateCol[T]{ICol: &c, Aggregator: fn, body: c.GetCode(), params: params, alias: c.alias, dialect: c.altFactory.Db().dialect}
+}
+
+func (c *ColumnWrap[T]) CaseStmt(pkName string) *CaseStmt {
+	return &CaseStmt{col: c, builder: squirrel.Case(pkName)}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-preform/preform/scanners"
 	preformShare "github.com/go-preform/preform/share"
+	"github.com/go-preform/squirrel"
 	"reflect"
 	"strconv"
 	"strings"
@@ -86,6 +87,7 @@ type ICol interface {
 	JsonAgg() iAggregateCol
 	ArrayAgg() iAggregateCol
 	GroupConcat(splitter string) iAggregateCol
+	CaseStmt(pkName string) *CaseStmt
 	IsSame(ICol) bool
 }
 
@@ -703,6 +705,45 @@ func (c *column[T]) new() *T {
 
 func (c Column[T]) IsSame(cc ICol) bool {
 	return c.factory.CodeName() == cc.QueryFactory().CodeName() && c.Name() == cc.Name()
+}
+
+type CaseStmt struct {
+	col     ICol
+	builder squirrel.CaseBuilder
+}
+
+func (c *Column[T]) CaseStmt(pkName string) *CaseStmt {
+	return &CaseStmt{col: c, builder: squirrel.Case(pkName)}
+}
+
+func (c *CaseStmt) When(cond ICond, then any) *CaseStmt {
+	c.builder = c.builder.When(cond, then)
+	return c
+}
+
+func (c *CaseStmt) Else(els any) *CaseStmt {
+	c.builder = c.builder.Else(els)
+	return c
+}
+
+func (c *CaseStmt) ToSql(dialect preformShare.IDialect) (string, []interface{}, error) {
+	return dialect.CaseStmtToSql(c.builder, c.col)
+}
+
+func (c *CaseStmt) MustSql(dialect preformShare.IDialect) (string, []interface{}) {
+	s, a, e := dialect.CaseStmtToSql(c.builder, c.col)
+	if e != nil {
+		panic(e)
+	}
+	return s, a
+}
+
+func (c *CaseStmt) ToExpr(dialect preformShare.IDialect) (squirrel.Sqlizer, error) {
+	s, a, e := dialect.CaseStmtToSql(c.builder, c.col)
+	if e != nil {
+		return nil, e
+	}
+	return squirrel.Expr(s, a...), nil
 }
 
 func makeDefaultParser[T any](zeroVal T) func(*T) any {

@@ -79,6 +79,7 @@ type IDialect interface {
 	DefaultValueExpr() squirrel.Sqlizer
 	ParseCustomTypeScan(src any) (dst []string, err error)
 	ParseCustomTypeValue(name string, src ...any) (dst string, err error)
+	CaseStmtToSql(builder squirrel.CaseBuilder, col ICol) (string, []any, error)
 	//condition
 	Eq(col ICol, v any) squirrel.Sqlizer
 	NotEq(col ICol, v any) squirrel.Sqlizer

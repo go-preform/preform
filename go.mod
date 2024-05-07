@@ -7,7 +7,7 @@ toolchain go1.21.6
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.23.2
 	github.com/gertd/go-pluralize v0.2.0
-	github.com/go-preform/squirrel v1.5.4-fast-2
+	github.com/go-preform/squirrel v1.5.4-fast-3
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v5 v5.5.0

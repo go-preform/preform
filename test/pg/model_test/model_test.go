@@ -293,6 +293,22 @@ func TestUserUpdate(t *testing.T) {
 	affected, err = mainModel.PreformTestA.User.Update().Set(mainModel.PreformTestA.User.CreatedAt, time.Now()).Where(mainModel.PreformTestA.User.Id.Gt(2)).Exec()
 	assert.Nil(t, err)
 	assert.Equal(t, int64(3), affected)
+
+	users, err := mainModel.PreformTestA.User.GetAll(mainModel.PreformTestA.User.Id.Gt(3))
+	assert.Nil(t, err)
+	assert.Len(t, users, 2)
+	//assert.Equal(t, time.Time{}, users[0].CreatedAt)
+	//assert.Equal(t, time.Time{}, users[1].CreatedAt)
+	users[0].CreatedAt = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	users[1].CreatedAt = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	affected, err = mainModel.PreformTestA.User.Update().SetBodies(&users[0], &users[1]).Exec()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(2), affected)
+	users, err = mainModel.PreformTestA.User.GetAll(mainModel.PreformTestA.User.Id.Gt(3))
+	assert.Nil(t, err)
+	assert.Equal(t, time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local), users[0].CreatedAt)
+	assert.Equal(t, time.Date(2020, 1, 2, 0, 0, 0, 0, time.Local), users[1].CreatedAt)
+
 }
 
 func TestUserDelete(t *testing.T) {
