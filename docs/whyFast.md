@@ -213,7 +213,7 @@ users, err := mainSchema.User.Select(mainSchema.User.Id, mainSchema.User.Usernam
 cards, err := users[0].LoadCards()
 ```
 
-Please share your thoughts and feedback on this article. I would love to hear your opinions and suggestions.
+Please share your thoughts or feedback on these. I would love to hear your opinions and suggestions.
 
 ![preform](../.github/asset/benchChart.png)
 
