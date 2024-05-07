@@ -10,15 +10,15 @@ go 1.18+, currently supports Postgres, Mysql, Clickhouse, Sqlite and more is com
 
 ## Overview
 
-- **Model builder**, will build table structure for queries & body type as data container
-- **Relations**, eager loading, join with predefined foreign keys
-- **Query builder** base on Masterminds/squirrel with type safe output
+- **Model builder**, will build table structure for queries & body type as data container, with custom type & enum supports
+- **Relations**, eager loading, join with predefined foreign keys / middle table
+- **Integrated query builder** base on [Masterminds/squirrel](http://github.com/Masterminds/squirrel) with type safe output
 - **Prebuild complex queries** for fast querying & type safe output
 - **Condition without string**, prebuild columns definition in table structure to avoid using string
 - **Type specific scanner**, make it faster than native rows.Scan
-- **Production grade Performance**, avoid using reflect after initialization
+- **Production grade Performance**, avoid using reflect after initialization and other optimization. Please see [benchmarks](#benchmarks) / [details](https://github.com/go-preform/preform/blob/pages/docs/whyFast.md)
 - **Schema wrapping**, easy to archive schema data isolation 
-- **Flexible log and tracing**, easy integration with zerolog, otel, etc.
+- **Flexible log and tracing**, built in support with zerolog, otel, interface for custom logger/tracer
 - **AI friendly**, pre-generated code is easy for AI to understand compare to string
 
 ![Flow chart](https://raw.githubusercontent.com/go-preform/preform/pages/.github/asset/preformFlow.png)
