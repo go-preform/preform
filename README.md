@@ -21,6 +21,7 @@ go 1.18+, currently supports Postgres, Mysql, Clickhouse, Sqlite and more is com
 - **Flexible log and tracing**, easy integration with zerolog, otel, etc.
 - **AI friendly**, pre-generated code is easy for AI to understand compare to string
 
+![Flow chart](https://raw.githubusercontent.com/go-preform/preform/pages/.github/asset/preformFlow.png)
 ## Example
 
 Talk is cheap, show me the code!
