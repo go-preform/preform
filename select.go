@@ -292,7 +292,7 @@ func (s *subQueryCol) ToSql() (string, []interface{}, error) {
 
 func (b *SelectQuery[B]) convertCols(cols ...any) *SelectQuery[B] {
 	var (
-		ret       = []string{}
+		ret       = make([]string, 0, len(cols))
 		c         IColFromFactory
 		cc        ICond
 		cd        preformShare.ISqlizerWithDialect

@@ -112,20 +112,21 @@ notes, err := model.GetAdminNotifications.Select(model.GetNotificationCount.Cnt,
 
 ### Benchmarks
 ```bash
+# with local docker postgres, 1000 rows
 goos: windows
 goarch: amd64
 pkg: github.com/go-preform/preform/benchmark
 cpu: 12th Gen Intel(R) Core(TM) i7-1280P
-BenchmarkPreformSelectAll-20                 472           2608712 ns/op          314256 B/op      12235 allocs/op
-BenchmarkPreformSelectAllFast-20             526           2367094 ns/op          260900 B/op       9341 allocs/op
-BenchmarkPreformSelectEager-20               133           8811348 ns/op         2112758 B/op      31962 allocs/op
-BenchmarkPreformSelectEagerFast-20           142           8522567 ns/op         2001407 B/op      25982 allocs/op
-BenchmarkGormSelectAll-20                    326           3721617 ns/op          416996 B/op      23210 allocs/op
-BenchmarkGormSelectEager-20                   91          13053397 ns/op         3532487 B/op      67214 allocs/op
-BenchmarkEntSelectAll-20                     423           2910246 ns/op          639377 B/op      20357 allocs/op
-BenchmarkEntSelectEager-20                   132           9301639 ns/op         2027165 B/op      48898 allocs/op
-BenchmarkSqlxStructScan-20                   409           2961220 ns/op          651155 B/op      12183 allocs/op
-BenchmarkSqlRawScan-20                       432           2836293 ns/op          650705 B/op      12180 allocs/op
+BenchmarkPreformSelectAll-20                 505           2409034 ns/op          313253 B/op      12230 allocs/op #1000 rows
+BenchmarkPreformSelectAllFast-20             522           2148375 ns/op          259898 B/op       9336 allocs/op #1000 rows
+BenchmarkPreformSelectEager-20               142           8488199 ns/op         2093926 B/op      31198 allocs/op #100 rows + 1000 + 1000
+BenchmarkPreformSelectEagerFast-20           152           7697739 ns/op         1982562 B/op      25218 allocs/op #100 rows + 1000 + 1000
+BenchmarkGormSelectAll-20                    346           3524713 ns/op          417110 B/op      23211 allocs/op #1000 rows
+BenchmarkGormSelectEager-20                   94          12663617 ns/op         3533700 B/op      67217 allocs/op #100 rows + 1000 + 1000
+BenchmarkEntSelectAll-20                     428           2762256 ns/op          639377 B/op      20357 allocs/op #1000 rows
+BenchmarkEntSelectEager-20                   135           8870325 ns/op         2027276 B/op      48899 allocs/op #100 rows + 1000 + 1000
+BenchmarkSqlxStructScan-20                   374           2982040 ns/op          651152 B/op      12183 allocs/op #1000 rows
+BenchmarkSqlRawScan-20                       446           2742864 ns/op          650706 B/op      12180 allocs/op #1000 rows
 ```
 
 
