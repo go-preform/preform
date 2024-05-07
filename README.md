@@ -26,6 +26,8 @@ go 1.18+, currently supports Postgres, Mysql, Clickhouse, Sqlite and more is com
 
 Talk is cheap, show me the code!
 
+For more examples, please check [test](./test) folder
+
 #### Quering
 ```go
 model.MainSchema.Use(func(mainSchema *model.MainSchema) { // syntax sugar to avoid long prefix chain
