@@ -16,7 +16,7 @@ go 1.18+, currently supports Postgres, Mysql, Clickhouse, Sqlite and more is com
 - **Prebuild complex queries** for fast querying & type safe output
 - **Condition without string**, prebuild columns definition in table structure to avoid using string
 - **Type specific scanner**, make it faster than native rows.Scan
-- **Production grade Performance**, avoid using reflect after initialization and other optimization. Please see [benchmarks](#benchmarks) / [details](https://github.com/go-preform/preform/blob/pages/docs/whyFast.md)
+- **Production grade Performance**, avoid using reflect after initialization and other optimization. Please see [benchmarks](#benchmarks) / [details](https://go-preform.github.io/preform/whyFast.html)
 - **Schema wrapping**, easy to archive schema data isolation 
 - **Flexible log and tracing**, built in support with zerolog, otel, interface for custom logger/tracer
 - **AI friendly**, pre-generated code is easy for AI to understand compare to string
