@@ -161,7 +161,7 @@ That’s a huge function with lots of resource foodies: reflect, type checking/c
 
 ```go
 type Int32 struct {
-	Value    *int
+	Value    *int32
 }
 
 func (s *Int32) Scan(src any) (err error) {
@@ -177,7 +177,7 @@ func (s *Int32) Scan(src any) (err error) {
 }
 
 var (
-	scanner = &Int{&testA.Int4}
+	scanner = &Int32{&testA.Int4}
 )
 ...
 for rows.Next() {
