@@ -115,21 +115,20 @@ notes, err := model.GetAdminNotifications.Select(model.GetNotificationCount.Cnt,
 
 ### Benchmarks
 ```bash
-# with local docker postgres, 1000 rows
-goos: windows
-goarch: amd64
+# with local docker postgres, 1000 rows on Apple M1 MAX
+goos: darwin
+goarch: arm64
 pkg: github.com/go-preform/preform/benchmark
-cpu: 12th Gen Intel(R) Core(TM) i7-1280P
-BenchmarkPreformSelectAll-20                 505           2409034 ns/op          313253 B/op      12230 allocs/op #1000 rows
-BenchmarkPreformSelectAllFast-20             522           2148375 ns/op          259898 B/op       9336 allocs/op #1000 rows
-BenchmarkPreformSelectEager-20               142           8488199 ns/op         2093926 B/op      31198 allocs/op #100 rows + 1000 + 1000
-BenchmarkPreformSelectEagerFast-20           152           7697739 ns/op         1982562 B/op      25218 allocs/op #100 rows + 1000 + 1000
-BenchmarkGormSelectAll-20                    346           3524713 ns/op          417110 B/op      23211 allocs/op #1000 rows
-BenchmarkGormSelectEager-20                   94          12663617 ns/op         3533700 B/op      67217 allocs/op #100 rows + 1000 + 1000
-BenchmarkEntSelectAll-20                     428           2762256 ns/op          639377 B/op      20357 allocs/op #1000 rows
-BenchmarkEntSelectEager-20                   135           8870325 ns/op         2027276 B/op      48899 allocs/op #100 rows + 1000 + 1000
-BenchmarkSqlxStructScan-20                   374           2982040 ns/op          651152 B/op      12183 allocs/op #1000 rows
-BenchmarkSqlRawScan-20                       446           2742864 ns/op          650706 B/op      12180 allocs/op #1000 rows
+BenchmarkPreformSelectAll-20               1107    1114150 ns/op   313897 B/op    12231 allocs/op #1000 rows
+BenchmarkPreformSelectAllFast-20           1598     718653 ns/op   260551 B/op     9337 allocs/op #1000 rows
+BenchmarkPreformSelectEager-20              327    4195277 ns/op  2111897 B/op    31951 allocs/op #100 rows + 1000 + 1000
+BenchmarkPreformSelectEagerFast-20          385    3184728 ns/op  2001004 B/op    25971 allocs/op #100 rows + 1000 + 1000
+BenchmarkGormSelectAll-20                   506    2805352 ns/op   416675 B/op    23210 allocs/op #1000 rows
+BenchmarkGormSelectEager-20                 129    9838620 ns/op  3537747 B/op    67227 allocs/op #100 rows + 1000 + 1000
+BenchmarkEntSelectAll-20                    721    1592649 ns/op   639373 B/op    20357 allocs/op #1000 rows
+BenchmarkEntSelectEager-20                  267    5305585 ns/op  2025764 B/op    48888 allocs/op #100 rows + 1000 + 1000
+BenchmarkSqlxStructScan-20                  814    1529897 ns/op   651149 B/op    12183 allocs/op #1000 rows
+BenchmarkSqlRawScan-20                      874    1350841 ns/op   650702 B/op    12180 allocs/op #1000 rows
 ```
 
-
+[![Benchmarks](https://go-preform.github.io/preform/asset/benchChart.png)](https://go-preform.github.io/preform/asset/benchChart.png)
