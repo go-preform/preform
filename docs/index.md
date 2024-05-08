@@ -4,7 +4,7 @@
 
 ## Introduction
 
-[How I made an ORM faster than raw SQL scan?](whyFast.md)
+[How I made an ORM faster than raw SQL scan?](./whyFast.md)
 
 ## Repos
 
