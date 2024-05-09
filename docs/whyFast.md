@@ -199,6 +199,8 @@ That's significant!
 
 ## Conclusion
 
+Of course, the above optimizations are not the only things I did to achieve the nice performance. But they are the most effective and rarely found in other repos.
+
 At last, [PREFORM](https://github.com/go-preform/preform) fixed the dilemma of performance and abstraction. The model builder reads the schema and generates data models, providing a performance boost from the above hacks. And it also generates factories, which can be helpful in building queries and manipulate models.
 
 ![preform](./asset/preformFlow.png)
