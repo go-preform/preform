@@ -132,3 +132,8 @@ BenchmarkSqlRawScan-20                      874    1350841 ns/op   650702 B/op  
 ```
 
 [![Benchmarks](https://go-preform.github.io/preform/asset/benchChart.png)](https://go-preform.github.io/preform/asset/benchChart.png)
+
+## Contributors
+- [Dillion Kum](https://github.com/dkishere)
+- [vali637](https://github.com/vali637)
+- [Eleron8](https://github.com/Eleron8)
