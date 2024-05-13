@@ -42,6 +42,13 @@ func (c *columnDef[T]) RelatedFk(def preformShare.IColDef) *columnDef[T] {
 	return c
 }
 
+func (c *columnDef[T]) NewValue() any {
+	var (
+		t T
+	)
+	return t
+}
+
 func (c columnDef[T]) RelatedFks() []preformShare.IColDef {
 	return c.relatedFks
 }
@@ -164,6 +171,12 @@ func (c *ColumnDef[T]) SetName(name string) *ColumnDef[T] {
 type PrimaryKeyDef[T any] struct {
 	*ForeignKeyDef[T]
 }
+
+type iPk interface {
+	isPk()
+}
+
+func (c *PrimaryKeyDef[T]) isPk() {}
 
 func (c *PrimaryKeyDef[T]) InitCol(ref *reflect.StructField, builder iFactoryBuilder) {
 	c.ForeignKeyDef = &ForeignKeyDef[T]{}

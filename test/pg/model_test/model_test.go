@@ -358,7 +358,7 @@ func TestTesters(t *testing.T) {
 		CreatedBy:  1,
 		CreatedAt:  time.Now(),
 	}
-	queryRunner.AddToQueryRows([][]driver.Value{{[]string{"id", "name", "manager_ids", "created_by", "created_at", "logined_at", "detail", "config", "extra_config"}}, {1, dummyUser.Name, "{1}", 1, dummyUser.CreatedAt, nil, nil, "{}", "{}"}})
+	queryRunner.AddToQueryRows([][]driver.Value{{[]string{"name", "manager_ids", "created_at", "logined_at", "detail", "config", "extra_config", "id", "created_by"}}, {dummyUser.Name, "{1}", dummyUser.CreatedAt, nil, nil, "{}", "{}", 1, 1}})
 	users, err := mainModel.PreformTestA.User.GetAll()
 	assert.Nil(t, err)
 	assert.Len(t, users, 1)

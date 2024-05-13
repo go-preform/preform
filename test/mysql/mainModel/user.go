@@ -17,11 +17,11 @@ var userInit = preform.InitFactory[*FactoryUser, UserBody](func(s *PreformTestAS
 
 type FactoryUser struct {
 	preform.Factory[*FactoryUser, UserBody]
-	Id *preform.PrimaryKey[int32] `db:"id" json:"Id" dataType:"int" autoKey:"true"`
 	Name *preform.Column[string] `db:"name" json:"Name" dataType:"varchar"`
-	CreatedBy *preform.ForeignKey[int32] `db:"created_by" json:"CreatedBy" dataType:"int"`
 	CreatedAt *preform.Column[time.Time] `db:"created_at" json:"CreatedAt" dataType:"datetime"`
 	LoginedAt *preform.Column[preformTypes.Null[time.Time]] `db:"logined_at" json:"LoginedAt" dataType:"datetime"`
+	Id *preform.PrimaryKey[int32] `db:"id" json:"Id" dataType:"int" autoKey:"true"`
+	CreatedBy *preform.ForeignKey[int32] `db:"created_by" json:"CreatedBy" dataType:"int"`
 	
 	//relations
 	UserByUserManagerManagerId *preform.MiddleTable[*UserBody, *FactoryUser, UserBody, UserManagerBody]
@@ -39,22 +39,22 @@ func (f FactoryUser) CloneInstance(factory preform.IFactory) preform.IFactory {
 	)
 	ff.Factory = *factory.(*preform.Factory[*FactoryUser, UserBody])
 	ff.Factory.Definition = &ff
-	ff.Id = cols[0].(*preform.PrimaryKey[int32] )
-	ff.Name = cols[1].(*preform.Column[string] )
-	ff.CreatedBy = cols[2].(*preform.ForeignKey[int32] )
-	ff.CreatedAt = cols[3].(*preform.Column[time.Time] )
-	ff.LoginedAt = cols[4].(*preform.Column[preformTypes.Null[time.Time]] )
+	ff.Name = cols[0].(*preform.Column[string] )
+	ff.CreatedAt = cols[1].(*preform.Column[time.Time] )
+	ff.LoginedAt = cols[2].(*preform.Column[preformTypes.Null[time.Time]] )
+	ff.Id = cols[3].(*preform.PrimaryKey[int32] )
+	ff.CreatedBy = cols[4].(*preform.ForeignKey[int32] )
 	return ff.Factory.Definition
 }
 
 
 type UserBody struct {
 	preform.Body[UserBody,*FactoryUser]
-	Id int32 `db:"id" json:"Id" dataType:"int" autoKey:"true"`
 	Name string `db:"name" json:"Name" dataType:"varchar"`
-	CreatedBy int32 `db:"created_by" json:"CreatedBy" dataType:"int"`
 	CreatedAt time.Time `db:"created_at" json:"CreatedAt" dataType:"datetime"`
 	LoginedAt preformTypes.Null[time.Time] `db:"logined_at" json:"LoginedAt" dataType:"datetime"`
+	Id int32 `db:"id" json:"Id" dataType:"int" autoKey:"true"`
+	CreatedBy int32 `db:"created_by" json:"CreatedBy" dataType:"int"`
 	
 	UserByUserManagerManagerId []*UserBody
 	UserByUserFk *UserBody
@@ -72,21 +72,21 @@ func (m *UserBody) Update(cfg ... preform.UpdateConfig) (affected int64, err err
 
 func (m *UserBody) Delete(cfg ... preform.EditConfig) (affected int64, err error) { return PreformTestA.User.DeleteByPk(m, cfg...) }
 
-func (m UserBody) FieldValueImmutablePtrs() []any { return []any{&m.Id, &m.Name, &m.CreatedBy, &m.CreatedAt, &m.LoginedAt} }
+func (m UserBody) FieldValueImmutablePtrs() []any { return []any{&m.Name, &m.CreatedAt, &m.LoginedAt, &m.Id, &m.CreatedBy} }
 
 func (m *UserBody) FieldValuePtr(pos int) any { 
 	switch pos {
-		case 0: return &m.Id
-		case 1: return &m.Name
-		case 2: return &m.CreatedBy
-		case 3: return &m.CreatedAt
-		case 4: return &m.LoginedAt
+		case 0: return &m.Name
+		case 1: return &m.CreatedAt
+		case 2: return &m.LoginedAt
+		case 3: return &m.Id
+		case 4: return &m.CreatedBy
 	}
 	return nil
 }
 
 func (m *UserBody) FieldValuePtrs() []any { 
-	return []any{&m.Id, &m.Name, &m.CreatedBy, &m.CreatedAt, &m.LoginedAt}
+	return []any{&m.Name, &m.CreatedAt, &m.LoginedAt, &m.Id, &m.CreatedBy}
 }
 
 func (m *UserBody) RelatedValuePtrs() []any { return []any{&m.UserByUserManagerManagerId, &m.UserByUserFk, &m.UserByUserManagerUserId, &m.UsersByUserFk, &m.UserLogs, &m.UserLogsByUserLogUserFkRegister} }

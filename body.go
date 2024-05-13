@@ -31,8 +31,8 @@ func (b QueryBody[T, F]) getQueryFactory() IQuery {
 
 type Body[T hasFactory[F], F IFactory] struct {
 	QueryBody[T, F]
-	hasFactory bool
 	factory    F
+	hasFactory bool
 }
 
 func (b Body[T, F]) getFactory() IFactory {

@@ -8,7 +8,11 @@ import (
 )
 
 type Enum_PreformTestA_LogType string
-type CustomType_PreformTestA_LogDetail struct{}
+type CustomType_PreformTestA_LogDetail struct{
+	UserAgent string
+	SessionId uuid.UUID
+	LastLogin time.Time
+}
 
 type PreformTestA_user struct {
 	preformBuilder.FactoryBuilder[*PreformTestA_user]

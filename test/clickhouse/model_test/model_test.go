@@ -259,7 +259,7 @@ func TestUserDelete(t *testing.T) {
 	_, err = mainModel.PreformTestA.User.Delete().Where(mainModel.PreformTestA.User.Id.Gt(4)).Exec(tx)
 	assert.Nil(t, err)
 
-	user, err := mainModel.PreformTestA.User.GetOne(3)
+	user, err := mainModel.PreformTestA.User.Select().Where(mainModel.PreformTestA.User.Id.Eq(3)).GetOne()
 	assert.Nil(t, err)
 	assert.Equal(t, "test3", user.Name)
 

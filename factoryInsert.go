@@ -214,12 +214,17 @@ func (f Factory[FPtr, B]) InsertOne(body *B, cfgs ...EditConfig) error {
 	if cfg.NoAutoPrimaryKey {
 		autoPk = nil
 	}
-	var i int
+	var (
+		i     int
+		delta = 0
+	)
 	for _, col := range f.columns {
 		bodyValues[i] = col.unwrapPtrForInsert(bodyValues[i])
 		if bodyValues[i] == preformShare.DEFAULT_VALUE {
 			if autoPk == col {
-				bodyValues = append(bodyValues[:autoPk.GetPos()], bodyValues[autoPk.GetPos()+1:]...)
+				bodyValues = append(bodyValues[:autoPk.GetPos()-delta],
+					bodyValues[autoPk.GetPos()-delta+1:]...)
+				delta++
 				if lastIdSuffix != nil {
 					suffix, args, _ := lastIdSuffix(autoPk.DbName()).ToSql()
 					query = query.Suffix(suffix, args...)
@@ -227,6 +232,7 @@ func (f Factory[FPtr, B]) InsertOne(body *B, cfgs ...EditConfig) error {
 				continue
 			} else {
 				bodyValues = append(bodyValues[:i], bodyValues[i+1:]...) //sqlite don't have DEFAULT
+				delta++
 				continue
 			}
 		}

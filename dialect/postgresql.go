@@ -599,9 +599,9 @@ type typeExported interface {
 }
 
 func (d postgresqlDialect) CaseStmtToSql(builder squirrel.CaseBuilder, col preformShare.ICol) (string, []any, error) {
-	s, a, e := builder.ToSql()
-	if e != nil {
-		return s, a, e
+	sqlStr, args, err := builder.ToSql()
+	if err != nil {
+		return sqlStr, args, err
 	}
 	var (
 		v         = col.NewValue()
@@ -610,44 +610,43 @@ func (d postgresqlDialect) CaseStmtToSql(builder squirrel.CaseBuilder, col prefo
 	wrapTypes = func(v any) {
 		switch v.(type) {
 		case time.Time:
-			s = fmt.Sprintf("(%s)::timestamp", s)
-			for i := range a {
-				switch a[i].(type) {
+			sqlStr = fmt.Sprintf("(%s)::timestamp", sqlStr)
+			for i := range args {
+				switch args[i].(type) {
 				case time.Time:
-					a[i] = a[i].(time.Time).Format(time.RFC3339)
+					args[i] = args[i].(time.Time).Format(time.RFC3339)
 				}
 			}
 		case int32, int64, int, uint32, uint64, uint, float32, float64, preformTypes.Rat:
-			s = fmt.Sprintf("(%s)::numeric", s)
-			for i := range a {
-				a[i] = fmt.Sprintf("%v", a[i])
+			sqlStr = fmt.Sprintf("(%s)::numeric", sqlStr)
+			for i := range args {
+				args[i] = fmt.Sprintf("%v", args[i])
 			}
 		case isJson:
-			s = fmt.Sprintf("(%s)::json", s)
+			sqlStr = fmt.Sprintf("(%s)::json", sqlStr)
 		default:
 			vt := reflect.TypeOf(v)
 			switch vt.Kind() {
 			case reflect.Slice, reflect.Array:
 				switch vt.Elem().Kind() {
 				case reflect.Int32, reflect.Int64, reflect.Int, reflect.Uint32, reflect.Uint64, reflect.Uint, reflect.Float32, reflect.Float64:
-					s = fmt.Sprintf("(%s)::_numeric", s)
-
+					sqlStr = fmt.Sprintf("(%s)::_numeric", sqlStr)
 				case reflect.String:
-					s = fmt.Sprintf("(%s)::_text", s)
+					sqlStr = fmt.Sprintf("(%s)::_text", sqlStr)
 				case reflect.Struct:
 					if vt.Elem().String() == "time.Time" {
-						s = fmt.Sprintf("(%s)::_timestamp", s)
+						sqlStr = fmt.Sprintf("(%s)::_timestamp", sqlStr)
 					} else if vt.Elem().String() == "preformTypes.Rat" {
-						s = fmt.Sprintf("(%s)::_numeric", s)
+						sqlStr = fmt.Sprintf("(%s)::_numeric", sqlStr)
 					}
 				}
-				for i := range a {
-					if vv, ok := a[i].(driver.Valuer); ok {
+				for i := range args {
+					if vv, ok := args[i].(driver.Valuer); ok {
 						if vvv, e := vv.Value(); e == nil {
-							a[i] = fmt.Sprintf("%v", vvv)
+							args[i] = fmt.Sprintf("%v", vvv)
 						}
 					} else {
-						a[i] = fmt.Sprintf("%v", a[i])
+						args[i] = fmt.Sprintf("%v", args[i])
 					}
 				}
 			default:
@@ -659,7 +658,5 @@ func (d postgresqlDialect) CaseStmtToSql(builder squirrel.CaseBuilder, col prefo
 	}
 	wrapTypes(v)
 
-	fmt.Println(col.DbName(), s, a)
-
-	return s, a, e
+	return sqlStr, args, err
 }

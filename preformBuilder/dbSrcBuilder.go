@@ -55,8 +55,14 @@ func BuildModel(conn *sql.DB, modelPkgName, outputFiles string, schemasEmptyIsAl
 			enumTypes = append(enumTypes, fmt.Sprintf(`type Enum_%s_%s string`, strcase.ToCamel(schemaName), strcase.ToCamel(enumName)))
 		}
 
-		for customTypeName := range schema.CustomTypes {
-			enumTypes = append(enumTypes, fmt.Sprintf(`type CustomType_%s_%s struct{}`, strcase.ToCamel(schemaName), strcase.ToCamel(customTypeName)))
+		for customTypeName, ct := range schema.CustomTypes {
+			attrs := make([]string, 0, len(ct.Attr))
+			for _, c := range ct.Attr {
+				attrs = append(attrs, fmt.Sprintf(`%s %s`, strcase.ToCamel(c.Name), c.Type))
+			}
+			enumTypes = append(enumTypes, fmt.Sprintf(`type CustomType_%s_%s struct{
+	%s
+}`, strcase.ToCamel(schemaName), strcase.ToCamel(customTypeName), strings.Join(attrs, "\n\t")))
 		}
 	lookForMiddleTable:
 		for _, table := range schema.Tables {

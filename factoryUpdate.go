@@ -183,9 +183,6 @@ func (b UpdateBuilder[B]) ToSql() (string, []any, error) {
 			pkColPos   = pk[0].GetPos()
 			pkValues   = make([]any, l)
 		)
-		if len(pk) != 1 {
-			return "", nil, errors.New("update by bodies must have only one pk")
-		}
 		if len(cols) == 0 {
 			cols = b.factory.Columns()
 		}
@@ -196,6 +193,9 @@ func (b UpdateBuilder[B]) ToSql() (string, []any, error) {
 				b.Builder = b.Builder.Set(db.GetDialect().QuoteIdentifier(col.DbName()), col.unwrapPtrForUpdate(bodyValues[col.GetPos()]))
 			}
 		} else {
+			if len(pk) != 1 {
+				return "", nil, errors.New("update by bodies must have only one pk")
+			}
 			var (
 				cases   = make([]*CaseStmt, len(cols))
 				caseMap = map[string]any{}
@@ -210,12 +210,12 @@ func (b UpdateBuilder[B]) ToSql() (string, []any, error) {
 				for i, col = range cols {
 					if _, ok = bodyValues[col.GetPos()].(driver.Valuer); ok {
 						cases[i] = cases[i].When(
-							squirrel.Expr("?", pk[pkColPos].unwrapPtr(bodyValues[pkColPos])),
+							squirrel.Expr("?", pk[0].unwrapPtr(bodyValues[pkColPos])),
 							squirrel.Expr("?", bodyValues[col.GetPos()]),
 						)
 					} else {
 						cases[i] = cases[i].When(
-							squirrel.Expr("?", pk[pkColPos].unwrapPtr(bodyValues[pkColPos])),
+							squirrel.Expr("?", pk[0].unwrapPtr(bodyValues[pkColPos])),
 							squirrel.Expr("?", col.unwrapPtr(bodyValues[col.GetPos()])),
 						)
 					}

@@ -6,6 +6,7 @@ import (
 	"github.com/iancoleman/strcase"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -55,6 +56,8 @@ type FactoryBuilder[D iFactoryBuilder] struct {
 	customFields       [][2]any
 	associatedModelCnt map[string]int
 	isView             bool
+
+	disableColAlign bool
 }
 
 func (f *FactoryBuilder[D]) setSchemaPrefix(b bool) {
@@ -313,6 +316,11 @@ func (f *FactoryBuilder[D]) FullCodeName() string {
 	return f.codeName
 }
 
+func (f *FactoryBuilder[D]) SetColAlign(enable bool) *FactoryBuilder[D] {
+	f.disableColAlign = !enable
+	return f
+}
+
 func (f *FactoryBuilder[D]) preGenerateCode(schemaName string) {
 	var (
 		//defRef     = reflect.ValueOf(f.Definition).Elem()
@@ -349,12 +357,14 @@ func (f *FactoryBuilder[D]) preGenerateCode(schemaName string) {
 	if f.name != "" {
 		f.settingCodes = append(f.settingCodes, fmt.Sprintf(`s.%s.SetTableName("%s")`, f.codeName, f.name))
 	}
+	if !f.disableColAlign {
+		f.alignColumns()
+	}
 	//fmt.Println("preGenerateCode", modelName)
 	for i, c := range f.columns {
-		//for i := 0; i < defTypeRef.NumField(); i++ {
-		//fieldRef := defTypeRef.Field(i)
-		//if fieldRef.FactoryType.Kind() == reflect.Struct && fieldRef.FactoryType.NumField() != 0 {
-		//if c, ok := defRef.Field(i).Addr().Interface().(iColDef); ok {
+		if _, ok := any(c).(iPk); ok {
+			f.primaryKeys = append(f.primaryKeys, c)
+		}
 		importPath, defColCode, modelColCode, colSettingCodes, extraFunc = c.GenerateCode(schemaName, false)
 
 		defColCodeParts := tagRx.FindStringSubmatch(defColCode[0])
@@ -603,4 +613,45 @@ func (m *%sBody) RelatedValuePtrs() []any { return []any{%s} }
 			strings.Join(f.extraFuncs, "\n\n"),
 		),
 		f.importPaths, f.inheritors
+}
+
+type iTypeForExport interface {
+	TypeForExport() any
+}
+
+func (f *FactoryBuilder[D]) alignColumns() {
+	type colAlign struct {
+		col   preformShare.IColDef
+		align int
+	}
+	var (
+		aligns = make([]colAlign, len(f.columns))
+	)
+	for i, c := range f.columns {
+		v := c.NewValue()
+		for {
+			if t, ok := v.(iTypeForExport); ok {
+				v = t.TypeForExport()
+			} else {
+				break
+			}
+		}
+		if rt := reflect.TypeOf(v); rt == nil {
+			aligns[i] = colAlign{c, 8}
+		} else {
+			if rt.Kind() == reflect.Array {
+				aligns[i] = colAlign{c, rt.Align() * rt.Len()}
+			} else if rt.Kind() == reflect.Struct {
+				aligns[i] = colAlign{c, rt.FieldAlign()}
+			} else {
+				aligns[i] = colAlign{c, rt.Align()}
+			}
+		}
+	}
+	sort.Slice(aligns, func(i, j int) bool {
+		return aligns[i].align > aligns[j].align
+	})
+	for i, c := range aligns {
+		f.columns[i] = c.col
+	}
 }

@@ -26,11 +26,6 @@ type Column[T any] struct {
 }
 
 type column[T any] struct {
-	isPk              bool
-	isAuto            bool
-	isPtr             bool
-	isArray           bool
-	isScanner         bool
 	pos               int
 	NewPtr            func() *T
 	dbName            string
@@ -40,9 +35,14 @@ type column[T any] struct {
 	insertValueParser func(*T) any
 	valueParser       func(*T) any
 	defaultVal        string
-	isPtrUnwrapper    bool
 	valueCompareLess  func(any, any) bool
 	stringfier        func(any) string
+	isPk              bool
+	isAuto            bool
+	isPtr             bool
+	isArray           bool
+	isScanner         bool
+	isPtrUnwrapper    bool
 }
 
 type ColumnSetter[T any] struct {

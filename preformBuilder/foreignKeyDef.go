@@ -153,7 +153,11 @@ func (c ForeignKeyDef[T]) AutoAssociatedCond(factories []preformShare.IFactoryBu
 		for _, f := range factories {
 			//golang bug :P
 			if fmt.Sprintf("%p", ff) == fmt.Sprintf("%p", f) {
-				return any(c.Eq(ff.PK()[0])).(preformShare.ICondForBuilder)
+				for _, pk := range f.PK() {
+					if pk.GetType() == c.GetType() {
+						return any(c.Eq(pk)).(preformShare.ICondForBuilder)
+					}
+				}
 			}
 		}
 	}

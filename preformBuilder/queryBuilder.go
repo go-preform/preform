@@ -6,6 +6,7 @@ import (
 	"github.com/iancoleman/strcase"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -19,6 +20,8 @@ type QueryBuilder struct {
 	cols       []preformShare.IColDef
 	schemas    []string
 	setter     any
+
+	disableColAlign bool
 }
 
 func BuildQuery(name string, funcAcceptBuilderPlusModels any) *QueryBuilder {
@@ -148,6 +151,11 @@ func (builder *QueryBuilder) Having(condition preformShare.ICondForBuilder) *Que
 	return builder
 }
 
+func (f *QueryBuilder) SetColAlign(enable bool) *QueryBuilder {
+	f.disableColAlign = !enable
+	return f
+}
+
 func (builder *QueryBuilder) GenerateCode(schemaName string) (name, schemaField, factoryName, defCode, modelCode string, importPaths []string) {
 	var (
 		modelName       = strcase.ToCamel(builder.name)
@@ -196,6 +204,9 @@ func (builder *QueryBuilder) GenerateCode(schemaName string) (name, schemaField,
 				builder.cols = append(builder.cols, col.SetAliasI(src.src.CodeName()+col.CodeName()))
 			}
 		}
+	}
+	if !builder.disableColAlign {
+		builder.alignColumns()
 	}
 	defColCodes = append(defColCodes, "", "//columns")
 	for _, col := range builder.cols {
@@ -348,4 +359,41 @@ func (m *%sBody) FieldValuePtrs() []any {
 			strings.Join(extraFuncs, "\n\n"),
 		),
 		importPaths
+}
+
+func (f *QueryBuilder) alignColumns() {
+	type colAlign struct {
+		col   preformShare.IColDef
+		align int
+	}
+	var (
+		aligns = make([]colAlign, len(f.cols))
+	)
+	for i, c := range f.cols {
+		v := c.NewValue()
+		for {
+			if t, ok := v.(iTypeForExport); ok {
+				v = t.TypeForExport()
+			} else {
+				break
+			}
+		}
+		if rt := reflect.TypeOf(v); rt == nil {
+			aligns[i] = colAlign{c, 8}
+		} else {
+			if rt.Kind() == reflect.Array {
+				aligns[i] = colAlign{c, rt.Align() * rt.Len()}
+			} else if rt.Kind() == reflect.Struct {
+				aligns[i] = colAlign{c, rt.FieldAlign()}
+			} else {
+				aligns[i] = colAlign{c, rt.Align()}
+			}
+		}
+	}
+	sort.Slice(aligns, func(i, j int) bool {
+		return aligns[i].align > aligns[j].align
+	})
+	for i, c := range aligns {
+		f.cols[i] = c.col
+	}
 }

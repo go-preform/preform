@@ -42,6 +42,7 @@ type IColDef interface {
 	ColDef() IColDef
 
 	RelatedFks() []IColDef
+	NewValue() any
 }
 
 type ICondForBuilder interface {
@@ -142,4 +143,8 @@ type ITestQueryRunner interface {
 
 type ITestSqlConnectorDriver interface {
 	TestDriverName() string
+}
+
+type IHasTypeForExport interface {
+	TypeForExport() any
 }

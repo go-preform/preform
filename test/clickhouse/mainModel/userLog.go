@@ -18,10 +18,10 @@ var userLogInit = preform.InitFactory[*FactoryUserLog, UserLogBody](func(s *Pref
 type FactoryUserLog struct {
 	preform.Factory[*FactoryUserLog, UserLogBody]
 	Id *preform.PrimaryKey[uuid.UUID] `db:"id" json:"Id" dataType:"UUID"`
-	UserId *preform.PrimaryKey[int32] `db:"user_id" json:"UserId" dataType:"Int32" comment:"fk:preform_test_a.user.id"`
-	RelatedLogId *preform.ForeignKey[uuid.NullUUID] `db:"related_log_id" json:"RelatedLogId" dataType:"Nullable(UUID)" comment:"fk:preform_test_a.user_log.id"`
 	Type *preform.Column[PreformTestAUserLogType] `db:"type" json:"Type" dataType:"Enum8('Register' = 1, 'Login' = 2)"`
 	Detail *preform.Column[map[string]string] `db:"detail" json:"Detail" dataType:"Map(String, String)"`
+	UserId *preform.PrimaryKey[int32] `db:"user_id" json:"UserId" dataType:"Int32" comment:"fk:preform_test_a.user.id"`
+	RelatedLogId *preform.ForeignKey[uuid.NullUUID] `db:"related_log_id" json:"RelatedLogId" dataType:"Nullable(UUID)" comment:"fk:preform_test_a.user_log.id"`
 	
 	//relations
 	UserByUserLogUserFk *preform.ToOne[*UserLogBody, *FactoryUser, UserBody]
@@ -38,10 +38,10 @@ func (f FactoryUserLog) CloneInstance(factory preform.IFactory) preform.IFactory
 	ff.Factory = *factory.(*preform.Factory[*FactoryUserLog, UserLogBody])
 	ff.Factory.Definition = &ff
 	ff.Id = cols[0].(*preform.PrimaryKey[uuid.UUID] )
-	ff.UserId = cols[1].(*preform.PrimaryKey[int32] )
-	ff.RelatedLogId = cols[2].(*preform.ForeignKey[uuid.NullUUID] )
-	ff.Type = cols[3].(*preform.Column[PreformTestAUserLogType] )
-	ff.Detail = cols[4].(*preform.Column[map[string]string] )
+	ff.Type = cols[1].(*preform.Column[PreformTestAUserLogType] )
+	ff.Detail = cols[2].(*preform.Column[map[string]string] )
+	ff.UserId = cols[3].(*preform.PrimaryKey[int32] )
+	ff.RelatedLogId = cols[4].(*preform.ForeignKey[uuid.NullUUID] )
 	return ff.Factory.Definition
 }
 
@@ -49,10 +49,10 @@ func (f FactoryUserLog) CloneInstance(factory preform.IFactory) preform.IFactory
 type UserLogBody struct {
 	preform.Body[UserLogBody,*FactoryUserLog]
 	Id uuid.UUID `db:"id" json:"Id" dataType:"UUID"`
-	UserId int32 `db:"user_id" json:"UserId" dataType:"Int32" comment:"fk:preform_test_a.user.id"`
-	RelatedLogId uuid.NullUUID `db:"related_log_id" json:"RelatedLogId" dataType:"Nullable(UUID)" comment:"fk:preform_test_a.user_log.id"`
 	Type PreformTestAUserLogType `db:"type" json:"Type" dataType:"Enum8('Register' = 1, 'Login' = 2)"`
 	Detail map[string]string `db:"detail" json:"Detail" dataType:"Map(String, String)"`
+	UserId int32 `db:"user_id" json:"UserId" dataType:"Int32" comment:"fk:preform_test_a.user.id"`
+	RelatedLogId uuid.NullUUID `db:"related_log_id" json:"RelatedLogId" dataType:"Nullable(UUID)" comment:"fk:preform_test_a.user_log.id"`
 	
 	UserByUserLogUserFk *UserBody
 	UserByUserLogUserFkRegister *UserBody
@@ -68,21 +68,21 @@ func (m *UserLogBody) Update(cfg ... preform.UpdateConfig) (affected int64, err 
 
 func (m *UserLogBody) Delete(cfg ... preform.EditConfig) (affected int64, err error) { return PreformTestA.UserLog.DeleteByPk(m, cfg...) }
 
-func (m UserLogBody) FieldValueImmutablePtrs() []any { return []any{&m.Id, &m.UserId, &m.RelatedLogId, &m.Type, &m.Detail} }
+func (m UserLogBody) FieldValueImmutablePtrs() []any { return []any{&m.Id, &m.Type, &m.Detail, &m.UserId, &m.RelatedLogId} }
 
 func (m *UserLogBody) FieldValuePtr(pos int) any { 
 	switch pos {
 		case 0: return &m.Id
-		case 1: return &m.UserId
-		case 2: return &m.RelatedLogId
-		case 3: return &m.Type
-		case 4: return &m.Detail
+		case 1: return &m.Type
+		case 2: return &m.Detail
+		case 3: return &m.UserId
+		case 4: return &m.RelatedLogId
 	}
 	return nil
 }
 
 func (m *UserLogBody) FieldValuePtrs() []any { 
-	return []any{&m.Id, &m.UserId, &m.RelatedLogId, &m.Type, &m.Detail}
+	return []any{&m.Id, &m.Type, &m.Detail, &m.UserId, &m.RelatedLogId}
 }
 
 func (m *UserLogBody) RelatedValuePtrs() []any { return []any{&m.UserByUserLogUserFk, &m.UserByUserLogUserFkRegister, &m.UserLogByUserLogUserLogFk, &m.UserLogsByUserLogUserLogFk} }
